@@ -17,14 +17,14 @@ import java.util.Date;
  * 09.07.2018
  */
 public class App {
-    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    private static BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
     public static void main(String[] args) {
-        App app = new App();
-        ArrayList<DataLine> inputData = app.getInputData();
-        for (int i = 0; i < inputData.size(); i++) {
-            if (inputData.get(i) instanceof QueryLine)
-                System.out.println(((QueryLine) inputData.get(i)).evaluate(inputData, i));
+        String inputStrings[] = getInputStringsFromConsole();
+        ArrayList<DataLine> inputDataObjects = getInputData(inputStrings);
+        for (int i = 0; i < inputDataObjects.size(); i++) {
+            if (inputDataObjects.get(i) instanceof QueryLine)
+                System.out.println(((QueryLine) inputDataObjects.get(i)).evaluate(inputDataObjects, i));
         }
     }
 
@@ -33,52 +33,53 @@ public class App {
      *
      * @return list of instances of DataLine
      */
-    private ArrayList<DataLine> getInputData() {
+    public static ArrayList<DataLine> getInputData(String[] inputStrings) {
         ArrayList<DataLine> list = new ArrayList<>();
-        String inputStrings[];
-        while (list.isEmpty()) {
-            try {
-                inputStrings = getInputStringsFromConsole();
-                for (int i = 0; i < Integer.parseInt(inputStrings[0]); i++) {
-                    list.add(getDataObjectFromString(inputStrings[i + 1]));
-                }
-            } catch (IOException e) {
-                System.out.println("Sorry! Some Input/Output Error");
-                list.clear();
-            } catch (InvalidDataInStringException | NumberFormatException e) {
-                System.out.println("Incorrect data!");
-                list.clear();
-            } catch (ParseException e) {
-                e.printStackTrace();
+        try {
+            for (int i = 0; i < Integer.parseInt(inputStrings[0]); i++) {
+                list.add(getDataObjectFromString(inputStrings[i + 1]));
             }
-
+        } catch (InvalidDataInStringException | NumberFormatException e) {
+            System.out.println("Incorrect data!");
+            list.clear();
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
-
         return list;
     }
 
+
     /**
      * Method reads input lines from console and put them into array
+     *
      * @return Array of input strings from console
      * @throws IOException
      * @throws InvalidDataInStringException
      */
-    private String[] getInputStringsFromConsole() throws IOException, InvalidDataInStringException {
-        String result[];
-        System.out.println("Enter input data...");
-        int countOfAllLines = Integer.parseInt(reader.readLine());
+    private static String[] getInputStringsFromConsole() {
+        String result[] = null;
+        while (result == null) {
+            System.out.println("Enter input data...");
 
-        //First line contains count S (<= 100.000) of all lines.
-        if (countOfAllLines > 100000 || countOfAllLines < 1) {
-            throw new InvalidDataInStringException();
-        }
-        result = new String[countOfAllLines + 1];
-        result[0] = String.valueOf(countOfAllLines);
-        for (int i = 0; i < countOfAllLines; ) {
-            result[i + 1] = reader.readLine();
-            if (!result[i + 1].isEmpty()) {
-                i++;
+            try {
+                int countOfAllLines = Integer.parseInt(reader.readLine());
+                //First line contains count S (<= 100.000) of all lines.
+                if (countOfAllLines > 100000 || countOfAllLines < 1) {
+                    throw new InvalidDataInStringException();
+                }
+                result = new String[countOfAllLines + 1];
+                result[0] = String.valueOf(countOfAllLines);
+                for (int i = 0; i < countOfAllLines; ) {
+                    result[i + 1] = reader.readLine();
+                    if (!result[i + 1].isEmpty()) {
+                        i++;
+                    }
+                }
+            } catch (IOException | InvalidDataInStringException | NumberFormatException e) {
+                System.out.println("Invalid data!");
+                result = null;
             }
+
         }
         return result;
     }
@@ -91,7 +92,7 @@ public class App {
      * @return instance of DataLine depending on input string parameters
      * @throws InvalidDataInStringException
      */
-    private DataLine getDataObjectFromString(String inputString) throws InvalidDataInStringException, ParseException {
+    private static DataLine getDataObjectFromString(String inputString) throws InvalidDataInStringException, ParseException {
         DataLine result;
         String[] fieldsOfObject = inputString.split(" ");
 
